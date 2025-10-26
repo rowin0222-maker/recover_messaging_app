@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>One-Click Message Recovery — Prototype</title>
+    <style>
+        :root{
+            --bg1: #0f1724;
+            --bg2: #08101a;
+            --accent: #7c5cff;
+            --muted: #9aa4b2;
+            --glass: rgba(255,255,255,0.04);
+        }
+
+        *{
+            box-sizing: border-box;
+            font-family: Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+        html,body{
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(135deg,var(--bg1),var(--bg2));color:#e6eef6}
+        .wrap{
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 28px;
+        }
+        .card{
+            width: 980px;
+            max-width: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius: 14px;
+            padding: 26px;
+            box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+            border: 1px solid rgba(255,255,255,0.03);
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        header h1{
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: -0.2px;
+        }
+        header p{
+            margin: 6px 0 14px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .controls{
+            background: var(--glass);
+            padding: 14px;
+            border-radius: 10px;
+        }
+        label{
+            display: block;
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: var(--muted),
+            select, input[type="checkbox"]
+            font-size: 14px;
+        }
+        .row{
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px
+        }
+        .btn{
+            display: inline-flex;
+            align-items: center;
+            gap:8px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border:0;
+            background: linear-gradient(90deg,var(--accent),#5ec6ff);
+            color:#04202b;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(124,92,255,0.18);
+            transition: transform .12s ease;
+        }
+        .btn:active{
+            transform:translateY(1px);
+        }
+        .muted{
+            color:var(--muted);
+            font-size:13px
+        }
+        .status{
+            background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            padding: 12px;
+            border-radius: 10px;
+            border:1px solid rgba(255,255,255,0.02);
+        }
+        .progress{
+            height: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress > i{
+            display: block;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg,var(--accent),#5ec6ff);
+            transition: width .3s ease;
+        }
+        .log{
+            margin-top: 12px;
+            max-height: 240px;
+            overflow: auto;
+            padding: 10px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.008));
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .results{
+            padding: 12px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.16), rgba(0,0,0,0.06));
+            min-height: 120px;
+        }
+        .msg{
+            padding:10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .msg.in{
+            background:rgba(255,255,255,0.02);
+            text-align:left
+        }
+        .msg.out{
+            background:linear-gradient(90deg, rgba(124,92,255,0.14), rgba(94,198,255,0.06));
+            color:#04202b; 
+            text-align:right;
+        }
+        .tips{
+            font-size: 13px;
+            color: var(--muted);
+        }
+        footer{
+            grid-column: 1/-1;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .badge{
+            background: rgba(255,255,255,0.02);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            color: var(--muted)
+        }
+        @media (max-width:880px){
+            .card{
+                grid-template-columns: 1fr;
+                padding:18px
+            }
+            footer{
+                flex-direction: column;
+                gap: 8px;
+                align-items: start;
+            }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card" role="application" aria-label="Message recovery prototype">
+            <div>
+                <header>
+                    <h1>Recover Messages — Prototype UI</h1>
+                    <p>Simulated one-click recovery interface. Real recovery depends on backups, device access, and encryption.</p>
+                </header>
+
+                <div class="controls" id="controls">
+                    <label for="platform">Choose platform</label>
+                    <select id="platform" aria-label="platform">
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="messenger">Facebook Messenger</option>
+                        <option value="sms">SMS / Android Messages</option>
+                        <option value="other">Other / Generic</option>
+                    </select>
+
+                    <div style="margin-top:12px" class="muted">Recovery methods (choose what to check)</div>
+                    <div style="margin-top:8px">
+                        <label class="row"><input id="local" type="checkbox" checked> Check local backups (device storage)</label>
+                        <label class="row"><input id="cloud" type="checkbox" checked> Check cloud backups (Google Drive / iCloud)</label>
+                        <label class="row"><input id="notif" type="checkbox"> Scan Android notification logs (Android only)</label>
+                    </div>
+
+                    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+                        <button id="recover" class="btn" aria-live="polite">🔁 Recover</button>
+                        <div class="muted" id="quick-hint">Tip: Always keep backups enabled</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div>
+                <div class="status">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div><strong id="status-title">Idle</strong><div class="muted" id="status-sub">No action yet</div></div>
+                        <div class="badge" id="platform-badge">—</div>
+                    </div>
+
+                    <div class="progress" aria-hidden="false" style="margin-top:12px">
+                        <i id="bar"></i>
+                    </div>
+
+                    <div class="log" id="log" aria-live="polite" role="log">
+                      <!-- logs go here -->
+                    </div>
+                </div>
+
+                <div style="height:16px"></div>
+
+                <div class="results" id="results" aria-live="polite">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <strong>Recovered messages</strong>
+                        <div class="muted">Simulation only — not actual decryption</div>
+                    </div>
+                    <div id="recovered-list" style="margin-top:12px">
+                      <!-- messages -->
+                    </div>
+                </div>
+
+                <div style="height:12px"></div>
+
+                <div class="tips">
+                    <strong>Quick reality check & legit recovery options</strong>
+                    <ul style="margin:6px 0 0 18px">
+                        <li>WhatsApp: if you had local backups (/WhatsApp/Databases) or cloud backup (Google Drive / iCloud), restore from those via official app only.</li>
+                        <li>Messenger: use "Download Your Information" in Facebook settings or check archived conversations — deleted messages usually can't be restored from another account.</li>
+                        <li>SMS: Android backups or third-party backup apps (installed before deletion) can restore. Notification logs can sometimes show message fragments on Android (device dependent).</li>
+                        <li>Avoid pirated apps that ask for root, account credentials, or payment — they frequently do not work and risk data loss or theft.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <footer>
+                <div class="muted">Prototype by Rowin P. Alan • Safe & legal methods only</div>
+                <div class="muted">Need a version that integrates real backup scanning? I can show how to wire that up (legal only).</div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const recoverBtn = document.getElementById('recover');
+        const logEl = document.getElementById('log');
+        const bar = document.getElementById('bar');
+        const statusTitle = document.getElementById('status-title');
+        const statusSub = document.getElementById('status-sub');
+        const platformBadge = document.getElementById('platform-badge');
+        const recoveredList = document.getElementById('recovered-list');
+
+        function appendLog(txt){
+            const t = document.createElement('div');
+            t.textContent = '[' + new Date().toLocaleTimeString() + '] ' + txt;
+            logEl.prepend(t);
+        }
+
+        function clearResults(){
+            recoveredList.innerHTML = '';
+        }
+
+        function showRecovered(messages){
+            clearResults();
+            if(!messages.length){
+                recoveredList.innerHTML = '<div class="muted">No recoverable messages found.</div>';
+                return;
+            }
+            messages.forEach(m => {
+                const d = document.createElement('div');
+                d.className = 'msg ' + (m.dir === 'in' ? 'in' : 'out');
+                d.innerHTML = `<div style="font-size:12px;color:var(--muted)">${m.time}</div><div style="margin-top:6px">${m.text}</div>`;
+                recoveredList.appendChild(d);
+            });
+        }
+
+        async function simulateProcess(platform, opts){
+            let progress = 0;
+            bar.style.width = '2%';
+            statusTitle.textContent = 'Scanning...';
+            platformBadge.textContent = platform.toUpperCase();
+            statusSub.textContent = 'Checking selected sources';
+            appendLog('Starting scan for ' + platform);
+
+            const interval = setInterval(() => {
+                progress += Math.random()*12 + 8;
+                if(progress>100) progress=100;
+                bar.style.width = progress + '%';
+                if(progress >= 100){
+                    clearInterval(interval);
+                    statusTitle.textContent = 'Finished';
+                    statusSub.textContent = 'Scan complete';
+                    appendLog('Scan finished');
+                    fetchMessages();
+                }
+            }, 420);
+        }
+
+        async function fetchMessages(){
+            try{
+                const res = await fetch('/api/messages');
+                const data = await res.json();
+                appendLog('Fetched ' + data.length + ' message(s) from database.');
+                showRecovered(data);
+            }catch(e){
+                appendLog('Error fetching messages: ' + e);
+            }
+        }
+
+        recoverBtn.addEventListener('click', () => {
+            const platform = document.getElementById('platform').value;
+            const opts = {
+                local: document.getElementById('local').checked,
+                cloud: document.getElementById('cloud').checked,
+                notif: document.getElementById('notif').checked
+            };
+            appendLog('User pressed Recover. Options: ' + JSON.stringify(opts));
+            simulateProcess(platform, opts);
+        });
+
+        appendLog('Prototype loaded — real database messages will be displayed after scan.');
+    </script>
+</body>
+</html>
